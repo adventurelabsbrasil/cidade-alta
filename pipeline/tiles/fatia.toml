@@ -1,0 +1,19 @@
+# Fatia vertical (#9): o quarteirão do spawn na Av. Borges de Medeiros (decisão 005).
+name = "fatia"
+
+# Centro do tile em WGS84. Ponto médio da Av. Borges de Medeiros no OSM.
+center_lat = -29.82115
+center_lon = -50.51457
+
+# Lado do tile em metros (decisão 003: chunks de 500 m a 1 km).
+size_m = 800
+
+# Resolução da malha de terreno, em metros.
+terrain_step_m = 4
+
+# Suavização do relevo (sigma em pixels do DEM de 30 m). O Copernicus é DSM e
+# carrega copa de árvore e telhado; suavizar tira esse ruído.
+dem_sigma_px = 2.0
+
+# Via onde o carro nasce (substring do nome no OSM).
+spawn_street = "Borges de Medeiros"

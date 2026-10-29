@@ -6,7 +6,11 @@ Este texto também aparece na tela de créditos do jogo.
 
 Dados de mapa do [OpenStreetMap](https://www.openstreetmap.org/copyright), disponíveis sob a Open Database License (ODbL). © OpenStreetMap contributors.
 
-Pegadas de prédios complementares: [Overture Maps Foundation](https://overturemaps.org/). Confira a licença do tema `buildings` de cada release usado e registre-a aqui quando o dado entrar no repo.
+Pegadas de prédios: [Overture Maps Foundation](https://overturemaps.org/), release `2026-10-21.0`, tema `buildings`, sob a ODbL. Nesta área o Overture reúne:
+
+- [Google Open Buildings](https://sites.research.google/gr/open-buildings/) (CC BY 4.0 / ODbL)
+- [Microsoft ML Building Footprints](https://github.com/microsoft/GlobalMLBuildingFootprints) (ODbL)
+- OpenStreetMap (ODbL)
 
 ## Relevo
 

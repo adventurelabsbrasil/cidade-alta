@@ -1,0 +1,24 @@
+{
+  "name": "fatia",
+  "center": {
+    "lat": -29.82115,
+    "lon": -50.51457
+  },
+  "size_m": 800,
+  "base_altitude_m": 80.4,
+  "spawn": {
+    "x": 43.74464483115323,
+    "y": 7.2723210347038645,
+    "z": -69.40791851248636,
+    "heading_from_north": 1.8583773911932022
+  },
+  "stats": {
+    "roads_drivable": 130,
+    "buildings": 814,
+    "buildings_source": "overture",
+    "buildings_osm_in_extract": 8,
+    "buildings_overture_in_bbox": 882,
+    "terrain_relief_m": 69.9,
+    "triangles": 98247
+  }
+}

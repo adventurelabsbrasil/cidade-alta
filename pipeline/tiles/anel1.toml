@@ -1,0 +1,9 @@
+# Teste de carga (#9): o anel 1 inteiro (1,5 km de raio) num tile só, centrado no
+# Pátio Urbano. Mede se a v0 precisa de streaming (risco da decisão 002).
+name = "anel1"
+center_lat = -29.8305702
+center_lon = -50.5243758
+size_m = 3000
+terrain_step_m = 8
+dem_sigma_px = 2.0
+spawn_street = "Borges de Medeiros"
