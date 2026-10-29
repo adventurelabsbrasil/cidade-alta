@@ -40,6 +40,8 @@ from rasterio.windows import from_bounds
 from scipy.ndimage import gaussian_filter, map_coordinates
 from shapely.geometry import box, shape
 
+import aparencia
+
 ROOT = Path(__file__).resolve().parent.parent
 OSM_PBF = ROOT / "data/osm/raw/sul-latest.osm.pbf"
 DEM_TIF = ROOT / "data/dem/raw/cop30_S30_W051.tif"
@@ -77,6 +79,8 @@ UNPAVED = {"unpaved", "dirt", "gravel", "ground", "sand", "compacted", "fine_gra
 ROAD_LIFT = 0.12  # a pista fica um pouco acima do terreno, sem z-fighting
 ROAD_CELL = 6.0   # célula de recorte das ruas: cada pedaço segue o relevo
 FLOOR_H = 3.0
+# Prédio com mais que isso da pegada sobre a pista é descartado (erro de detecção).
+ON_ROAD_MAX = 0.5
 
 
 def load_config(path: Path) -> dict:
@@ -199,7 +203,33 @@ def build_terrain(terrain: Terrain, half: float, step: float):
     return verts, faces
 
 
-def build_roads(feats, frame: Frame, terrain: Terrain, half: float):
+def mesh_area(area, terrain: Terrain, half: float, lift: float):
+    """Triangula uma área plana sobre o relevo, recortada em células pequenas
+    pra que cada triângulo acompanhe o terreno."""
+    n = int(math.ceil(2 * half / ROAD_CELL))
+    cells = [box(-half + i * ROAD_CELL, -half + j * ROAD_CELL, -half + (i + 1) * ROAD_CELL, -half + (j + 1) * ROAD_CELL)
+             for i in range(n) for j in range(n)]
+    cells = np.asarray(cells, dtype=object)
+    cells = cells[shapely.intersects(cells, area)]
+    pieces = shapely.intersection(cells, area)
+    verts, faces = [], []
+    for piece in pieces:
+        for part in shapely.get_parts(piece):
+            if part.geom_type != "Polygon" or part.area < 0.01:
+                continue
+            r = triangulate(part, terrain, lift)
+            if r is None:
+                continue
+            faces.append(r[1] + sum(len(v) for v in verts))
+            verts.append(r[0])
+    if not verts:
+        return None
+    return np.concatenate(verts), np.concatenate(faces)
+
+
+def build_roads(feats, frame: Frame, terrain: Terrain, half: float, skip_names=()):
+    """Ruas pavimentadas e de chão. Vias em `skip_names` saem da malha comum
+    (a regra de aparência desenha o pavimento delas) mas continuam em `lines`."""
     tile = box(-half, -half, half, half)
     paved, unpaved, lines = [], [], []
     for f in feats:
@@ -208,6 +238,8 @@ def build_roads(feats, frame: Frame, terrain: Terrain, half: float):
             continue
         line = frame.localize(shape(f["geometry"]))
         lines.append((line, p))
+        if p.get("name") in skip_names:
+            continue
         poly = line.buffer(road_width(p) / 2, cap_style="round", join_style="round", quad_segs=4)
         (unpaved if p.get("surface") in UNPAVED else paved).append(poly)
     out = {}
@@ -217,26 +249,30 @@ def build_roads(feats, frame: Frame, terrain: Terrain, half: float):
         area = shapely.union_all(polys).intersection(tile)
         if key == "unpaved" and paved:
             area = area.difference(shapely.union_all(paved))
-        # Recorta em células pequenas pra que cada triângulo acompanhe o relevo.
-        n = int(math.ceil(2 * half / ROAD_CELL))
-        cells = [box(-half + i * ROAD_CELL, -half + j * ROAD_CELL, -half + (i + 1) * ROAD_CELL, -half + (j + 1) * ROAD_CELL)
-                 for i in range(n) for j in range(n)]
-        cells = np.asarray(cells, dtype=object)
-        cells = cells[shapely.intersects(cells, area)]
-        pieces = shapely.intersection(cells, area)
-        verts, faces = [], []
-        for piece in pieces:
-            for part in shapely.get_parts(piece):
-                if part.geom_type != "Polygon" or part.area < 0.01:
-                    continue
-                r = triangulate(part, terrain, ROAD_LIFT)
-                if r is None:
-                    continue
-                faces.append(r[1] + sum(len(v) for v in verts))
-                verts.append(r[0])
-        if verts:
-            out[key] = (np.concatenate(verts), np.concatenate(faces))
+        mesh = mesh_area(area, terrain, half, ROAD_LIFT)
+        if mesh:
+            out[key] = mesh
     return out, lines
+
+
+def clear_roads(sources, lines, frame: Frame):
+    """Tira os prédios de cima da pista. A pegada do Overture vem de detecção por
+    satélite e às vezes erra: o prédio que está quase todo na pista é descartado,
+    e o que só encosta perde a parte que invade a rua (a casa colada à calçada fica)."""
+    pista = shapely.union_all([ln.buffer(road_width(p) / 2) for ln, p in lines])
+    to_geo = lambda c: np.column_stack(frame.geo(c[:, 0], c[:, 1]))
+    keep, dropped, clipped = [], 0, 0
+    for props, geom in sources:
+        poly = frame.localize(geom)
+        over = poly.intersection(pista).area
+        if poly.area <= 0 or over / poly.area > ON_ROAD_MAX:
+            dropped += 1
+            continue
+        if over > 1.0:
+            geom = shapely.transform(poly.difference(pista), to_geo)
+            clipped += 1
+        keep.append((props, geom))
+    return keep, dropped, clipped
 
 
 def overture_buildings(name: str, frame: Frame, half: float) -> list[dict]:
@@ -324,7 +360,8 @@ def main() -> None:
     tv, tf = build_terrain(terrain, half, cfg["terrain_step_m"])
     scene.add_geometry(colored(tv, tf, PALETTE["terrain"], "terreno"), node_name="terreno-col", geom_name="terreno")
 
-    roads, lines = build_roads(feats, frame, terrain, half)
+    regras = cfg.get("aparencia", [])
+    roads, lines = build_roads(feats, frame, terrain, half, skip_names={r["rua"] for r in regras})
     for key, (v, f) in roads.items():
         color = PALETTE["road"] if key == "paved" else PALETTE["unpaved"]
         scene.add_geometry(colored(v, f, color, key), node_name=f"ruas_{key}-col", geom_name=f"ruas_{key}")
@@ -337,6 +374,9 @@ def main() -> None:
         sources = [(f["properties"], shape(f["geometry"])) for f in feats
                    if "building" in f["properties"] and f["geometry"]["type"] in ("Polygon", "MultiPolygon")]
         source_name = "osm"
+    sources, on_road, clipped = clear_roads(sources, lines, frame)
+    for regra in regras:
+        sources = aparencia.aplicar(regra, sources, lines, frame, terrain, half, scene)
     built = build_buildings(sources, frame, terrain, half)
     if built:
         scene.add_geometry(built[0], node_name="predios-col", geom_name="predios")
@@ -358,6 +398,8 @@ def main() -> None:
             "buildings_source": source_name,
             "buildings_osm_in_extract": osm_buildings,
             "buildings_overture_in_bbox": len(overture),
+            "buildings_dropped_on_road": on_road,
+            "buildings_clipped_at_road": clipped,
             "terrain_relief_m": round(float(tv[:, 2].max() - tv[:, 2].min()), 1),
             "triangles": int(sum(len(g.faces) for g in scene.geometry.values())),
         },
