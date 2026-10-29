@@ -205,19 +205,24 @@ def main(path, out=None):
         if match:
             # o landmark substitui só o ponto do mesmo lugar; vizinhos seguem (decisão 010)
             kept = [c for c in kept if not any(alias in norm(c["name"]) for alias in aliases)]
-        landmarks.append({"id": lid, "nome": name, "categoria": cat, "pt": pt, "peso": 2,
-                          "landmark": True, "anel": ring_of(math.hypot(*pt))})
+        landmarks.append({"id": lid, "nome": name, "categoria": cat, "pt": pt, "trigger": nearest_road(pt)[1],
+                          "peso": 2, "landmark": True, "anel": ring_of(math.hypot(*pt))})
 
+    # gatilho = ponto da via dirigível mais próxima: a zona de descoberta fica na rua (decisão 008)
     points = []
     for c in kept:
         lon, lat = lonlat(c["pt"])
+        glon, glat = lonlat(c["trigger"])
         points.append({"id": c["osm_id"], "osm_id": c["osm_id"], "nome": c["name"], "categoria": c["cat"],
-                       "lon": lon, "lat": lat, "x": c["pt"][0], "y": c["pt"][1], "peso": 1,
+                       "lon": lon, "lat": lat, "x": c["pt"][0], "y": c["pt"][1],
+                       "gatilho_lon": glon, "gatilho_lat": glat, "peso": 1,
                        "landmark": False, "anel": c["anel"] + 1})
     for c in landmarks:
         lon, lat = lonlat(c["pt"])
+        glon, glat = lonlat(c["trigger"])
         points.append({"id": c["id"], "nome": c["nome"], "categoria": c["categoria"], "lon": lon, "lat": lat,
-                       "x": c["pt"][0], "y": c["pt"][1], "peso": c["peso"], "landmark": True, "anel": c["anel"] + 1})
+                       "x": c["pt"][0], "y": c["pt"][1], "gatilho_lon": glon, "gatilho_lat": glat,
+                       "peso": c["peso"], "landmark": True, "anel": c["anel"] + 1})
 
     table = defaultdict(lambda: [[0, 0] for _ in RINGS_M])
     for c in kept:

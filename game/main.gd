@@ -3,6 +3,8 @@
 ## Linha de comando (depois de `--`):
 ##   --autotest   roda a física sem tela e imprime o resultado
 ##   --bench      gira a câmera em volta do carro e imprime o FPS
+##   --autotest-descoberta  leva o carro a cada ponto do tile e confere cartão e save
+##   --save=<caminho>       arquivo de descobertas (padrão user://descobertas.json)
 extends Node3D
 
 const DEFAULT_TILE := "fatia"
@@ -11,6 +13,7 @@ const BENCH_SECONDS := 20.0
 @onready var car: Car = $Car
 @onready var camera: Camera3D = $Camera
 @onready var hud: Label = $HUD/Info
+@onready var descobertas: Descobertas = $Descobertas
 
 var spawn := Transform3D.IDENTITY
 var meta := {}
@@ -23,9 +26,14 @@ var _log: Array[String] = []
 func _ready() -> void:
 	_setup_input()
 	var tile := DEFAULT_TILE
+	var save := Descobertas.SAVE_PADRAO
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--tile="):
 			tile = arg.trim_prefix("--tile=")
+		elif arg.begins_with("--save="):
+			save = arg.trim_prefix("--save=")
+	if "--autotest-descoberta" in OS.get_cmdline_user_args():
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save))  # começa do zero
 	var world: Node3D = load("res://world/tiles/%s.glb" % tile).instantiate()
 	world.name = "Tile"
 	add_child(world)
@@ -34,9 +42,12 @@ func _ready() -> void:
 	spawn = Transform3D(Basis(Vector3.UP, -float(s["heading_from_north"])), Vector3(s["x"], s["y"], s["z"]))
 	_add_bounds(float(meta["size_m"]) / 2.0)
 	_apply_palette(world)
+	descobertas.setup(tile, car, save)
 	reset_car()
 	var args := OS.get_cmdline_user_args()
-	if "--autotest" in args:
+	if "--autotest-descoberta" in args:
+		_mode = "descoberta"
+	elif "--autotest" in args:
 		_mode = "autotest"
 	elif "--bench" in args:
 		_mode = "bench"
@@ -91,9 +102,11 @@ func _process(delta: float) -> void:
 			_autotest()
 		"bench":
 			_bench(delta)
-	hud.text = "%d km/h   %d FPS   %s\n[W/S] acelerar/frear  [A/D] direção  [Espaço] freio de mão  [C] câmera  [R] reiniciar" % [
+		"descoberta":
+			_autotest_descoberta()
+	hud.text = "%d km/h   %d FPS   %s   %s\n[W/S] acelerar/frear  [A/D] direção  [Espaço] freio de mão  [C] câmera  [R] reiniciar" % [
 		absi(roundi(car.speed() * 3.6)), Engine.get_frames_per_second(),
-		RenderingServer.get_current_rendering_driver_name()]
+		RenderingServer.get_current_rendering_driver_name(), descobertas.contador()]
 
 
 func _autotest() -> void:
@@ -125,6 +138,26 @@ func _autotest() -> void:
 		_log.append("t=%5.2f %-9s v=%6.1f km/h lat=%5.1f m/s pos=(%.1f, %.1f, %.1f) up=%.2f rodas=%d" % [
 			_t, phase, car.speed() * 3.6, lat, car.global_position.x, car.global_position.y,
 			car.global_position.z, up_dot, car.wheels.filter(func(w): return w.is_colliding()).size()])
+
+
+func _autotest_descoberta() -> void:
+	# Põe o carro parado em cima de cada gatilho, um a cada 0,5 s, e no fim confere
+	# se todos viraram descoberta e se o save tem os mesmos ids.
+	var i := int(_t / 0.5)
+	if i < descobertas.pontos.size():
+		var p: Dictionary = descobertas.pontos[i]
+		car.global_position = Vector3(p["x"], car.global_position.y, p["z"])
+		car.linear_velocity = Vector3.ZERO
+		return
+	if _t < (descobertas.pontos.size() + 2) * 0.5:
+		return
+	var salvo: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(descobertas.save_path))
+	var faltam: Array = descobertas.pontos.filter(func(p): return not descobertas.ids.has(p["id"]))
+	print("DESCOBERTA pontos=%d descobertos=%d salvos=%d peso=%d limiar=%d faltam=%s" % [
+		descobertas.pontos.size(), descobertas.ids.size(), salvo["descobertos"].size(),
+		descobertas.peso(), descobertas.limiar(), faltam.map(func(p): return p["nome"])])
+	print("CONTADOR ", descobertas.contador())
+	get_tree().quit()
 
 
 func _bench(delta: float) -> void:
