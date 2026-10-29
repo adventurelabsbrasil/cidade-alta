@@ -1,0 +1,26 @@
+{
+  "name": "piloto-15nov",
+  "center": {
+    "lat": -29.82115,
+    "lon": -50.51457
+  },
+  "size_m": 800,
+  "base_altitude_m": 82.1,
+  "spawn": {
+    "x": -95.98900155036856,
+    "y": 10.691281684443595,
+    "z": -392.21693339441896,
+    "heading_from_north": -2.851727325249051
+  },
+  "stats": {
+    "roads_drivable": 130,
+    "buildings": 788,
+    "buildings_source": "overture",
+    "buildings_osm_in_extract": 8,
+    "buildings_overture_in_bbox": 882,
+    "buildings_dropped_on_road": 1,
+    "buildings_clipped_at_road": 30,
+    "terrain_relief_m": 71.4,
+    "triangles": 100159
+  }
+}

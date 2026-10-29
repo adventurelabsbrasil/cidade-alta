@@ -1,0 +1,27 @@
+# Piloto de aparência (#16): mesma área da fatia, regra "residencial-interior" na Rua 15 de Novembro.
+name = "piloto-15nov"
+
+# Centro do tile em WGS84. Ponto médio da Av. Borges de Medeiros no OSM.
+center_lat = -29.82115
+center_lon = -50.51457
+
+# Lado do tile em metros (decisão 003: chunks de 500 m a 1 km).
+size_m = 800
+
+# Resolução da malha de terreno, em metros.
+terrain_step_m = 4
+
+# Suavização do relevo (sigma em pixels do DEM de 30 m). O Copernicus é DSM e
+# carrega copa de árvore e telhado; suavizar tira esse ruído. Com 2,0 a rampa
+# mais íngreme caía de 26% pra 15% e o morro ficava manso ao volante; 1,0
+# mantém 20% (medição de 29/10/2026, #9).
+dem_sigma_px = 1.0
+
+# Via onde o carro nasce (substring do nome no OSM).
+spawn_street = "15 de Novembro"
+
+# Aparência por regra: prédios a até `raio_m` do eixo da rua usam a regra.
+[[aparencia]]
+rua = "Rua 15 de Novembro"
+regra = "residencial-interior"
+raio_m = 30

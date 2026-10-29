@@ -18,7 +18,9 @@
     "buildings_source": "overture",
     "buildings_osm_in_extract": 8,
     "buildings_overture_in_bbox": 882,
+    "buildings_dropped_on_road": 1,
+    "buildings_clipped_at_road": 30,
     "terrain_relief_m": 71.4,
-    "triangles": 98247
+    "triangles": 98399
   }
 }

@@ -1,0 +1,44 @@
+# Regra de aparência "residencial de interior" (piloto na Rua 15 de Novembro).
+#
+# Origem: regra escrita pelo Founder a partir do conhecimento da cidade (ticket
+# "Referência visual", #16). Descreve o PADRÃO da rua, não casas específicas:
+#
+#   Rua residencial de interior, estreita e inclinada, com casas térreas e
+#   sobrados simples de alvenaria, alternando trechos de fachada colada à
+#   calçada e trechos com muro, grade e pequeno recuo. Telha cerâmica terracota
+#   e bege-argila. Fachadas em branco envelhecido, creme, amarelo colonial,
+#   ocre e bege. Calçamento de pedra irregular, sem faixa pintada, meio-fio
+#   baixo, calçada estreita. Árvores esparsas, postes e fiação aérea.
+
+# Tipologia por área da pegada (m²). Acima de `sobrado_min_m2`, sorteia sobrado
+# com a probabilidade `sobrado_peso`; abaixo, sempre térrea.
+[tipologia]
+sobrado_min_m2 = 90
+sobrado_peso = 0.35
+pe_direito_m = 3.0
+
+[telhado]
+inclinacao_graus = 28
+beiral_m = 0.4
+cores = ["#b5653f", "#a0563a", "#c8a27a"]   # terracota, terracota escura, bege-argila
+
+[fachada]
+cores = ["#eae6dc", "#efe3c4", "#e3c46a", "#c99a4b", "#d8c7a6"]   # branco envelhecido, creme, amarelo colonial, ocre, bege
+
+[rua]
+pavimento = "#8d8577"        # pedra irregular (cor chapada; textura fica pra depois)
+calcada_m = 1.5
+calcada_cor = "#b9b4a8"
+meio_fio_m = 0.12
+
+# Prédio recuado mais que isso da calçada ganha muro ou grade na frente.
+[frente]
+recuo_muro_m = 2.5
+muro_altura_m = 1.4
+muro_cores = ["#e6dfd0", "#cfc6b4", "#5a5f63"]   # muro claro, muro bege, grade escura
+
+[postes]
+espacamento_m = 35
+altura_m = 8.0
+cor = "#a9a59c"
+fio_cor = "#2b2b2b"
