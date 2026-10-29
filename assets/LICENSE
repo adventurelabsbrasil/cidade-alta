@@ -1,0 +1,11 @@
+Hand-made assets in this directory (models, textures, sounds, landmarks, cars)
+are licensed under the Creative Commons Attribution 4.0 International License
+(CC BY 4.0), unless a file states otherwise.
+
+Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+Attribution: credit the author listed in ATTRIBUTION.md (or in the asset's own
+metadata) and link to https://github.com/adventurelabsbrasil/cidade-alta.
+
+Note: an asset traced from OpenStreetMap geometry may also be subject to the
+ODbL (see data/osm/LICENSE). Fully original assets are not.
