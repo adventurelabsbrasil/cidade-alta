@@ -58,7 +58,7 @@ def main() -> None:
     pbf = BUILD / "aneis.osm.pbf"
     seq = BUILD / "aneis.geojsonseq"
     subprocess.run(["osmium", "extract", "-s", "smart", "-b", bbox, str(OSM_PBF), "-o", str(pbf), "--overwrite"], check=True)
-    subprocess.run(["osmium", "export", str(pbf), "-f", "geojsonseq", "-o", str(seq), "--overwrite"], check=True)
+    subprocess.run(["osmium", "export", str(pbf), "-f", "geojsonseq", "-o", str(seq), "--overwrite", "--add-unique-id=type_id"], check=True)
 
     center = Point(cx, cy)
     rings = [{"raio_km": k, "vias": 0, "vias_km": 0.0, "predios_osm": 0, "predios_overture": 0} for k in RINGS_KM]
