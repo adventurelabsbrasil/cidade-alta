@@ -137,7 +137,7 @@ def osm_features(cfg: dict, half: float, frame: Frame) -> list[dict]:
     pbf = BUILD / f"{cfg['name']}.osm.pbf"
     geojson = BUILD / f"{cfg['name']}.geojsonseq"
     subprocess.run(["osmium", "extract", "-s", "smart", "-b", bbox, str(OSM_PBF), "-o", str(pbf), "--overwrite"], check=True)
-    subprocess.run(["osmium", "export", str(pbf), "-f", "geojsonseq", "-o", str(geojson), "--overwrite"], check=True)
+    subprocess.run(["osmium", "export", str(pbf), "-f", "geojsonseq", "-o", str(geojson), "--overwrite", "--add-unique-id=type_id"], check=True)
     feats = []
     for line in geojson.read_text().splitlines():
         line = line.strip("\x1e").strip()
