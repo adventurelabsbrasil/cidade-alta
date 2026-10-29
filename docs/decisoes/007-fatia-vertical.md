@@ -23,6 +23,18 @@ Um tile real de 800 m × 800 m em volta da Av. Borges de Medeiros e o carro comp
 
 Os números de FPS são da câmera girando em volta do carro e sobrevoando o tile, em 1600×900 com sombra e MSAA 2×, sem vsync.
 
+### Relevo: quanto suavizar
+
+O Copernicus é DSM: mede copa de árvore e telhado junto com o chão, e o pixel tem 30 m. Suavizar tira esse ruído, mas também achata as rampas curtas. Declividade das ruas do tile, medida a cada 30 m:
+
+| Suavização (σ) | Mediana | 90% | Máxima | Borges, máx. |
+|---|---|---|---|---|
+| 0 (cru) | 4,9% | 13,7% | 26,0% | 15,6% |
+| **1 (adotado)** | 5,0% | 12,2% | 19,6% | 12,4% |
+| 2 (1ª versão) | 5,2% | 10,4% | 14,7% | 10,9% |
+
+Na primeira volta de teste, o Founder achou as lombas pouco acentuadas com σ=2. Com σ=1 as rampas fortes voltam sem trazer o ruído do dado cru. Lomba mais curta que ~60 m não aparece em DEM de 30 m: se fizer falta, é decisão de arte (exagero vertical ou lomba à mão), não de dado.
+
 ### Conteúdo por anel (centro no Pátio Urbano)
 
 | Anel | Vias | km de via | Prédios OSM | Prédios Overture |
