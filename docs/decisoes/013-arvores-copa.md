@@ -34,3 +34,9 @@ O pico local achava uma árvore por mancha, e a mata contínua sumia. A grade pr
 - **Custo:** o anel 1 tem ~14× a área do piloto, então seriam ~40 mil árvores. Precisa de MultiMesh/LOD ou de árvores agrupadas por mancha antes de ligar.
 - **Picos no p99:** investigar se vêm da colisão dos troncos ou da sombra das copas.
 - **Calibrar com o Founder:** densidade, tamanho da copa e verdes, jogando.
+
+## Antes e depois (`--bench`, passada alta)
+
+![Piloto sem árvores](../img/013-arvores-antes.png)
+
+![Piloto com árvores do mapa de copa](../img/013-arvores-depois.png)
