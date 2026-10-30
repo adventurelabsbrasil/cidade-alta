@@ -25,3 +25,9 @@ spawn_street = "15 de Novembro"
 rua = "Rua 15 de Novembro"
 regra = "residencial-interior"
 raio_m = 30
+
+# Árvores do mapa de copa da Meta/WRI (pipeline/arvores.py): o OSM não tem nenhuma.
+[arvores]
+altura_min_m = 3.0   # abaixo disso é arbusto ou ruído
+celula_m = 8.0       # uma árvore por célula com copa
+fracao_min = 0.5     # fração da célula coberta de copa

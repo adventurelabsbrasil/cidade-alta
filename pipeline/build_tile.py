@@ -41,6 +41,7 @@ from scipy.ndimage import gaussian_filter, map_coordinates
 from shapely.geometry import box, shape
 
 import aparencia
+import arvores
 
 ROOT = Path(__file__).resolve().parent.parent
 OSM_PBF = ROOT / "data/osm/raw/sul-latest.osm.pbf"
@@ -375,6 +376,8 @@ def main() -> None:
                    if "building" in f["properties"] and f["geometry"]["type"] in ("Polygon", "MultiPolygon")]
         source_name = "osm"
     sources, on_road, clipped = clear_roads(sources, lines, frame)
+    if "arvores" in cfg:
+        arvores.gerar(cfg, frame, terrain, half, lines, sources, scene, BUILD)
     for regra in regras:
         sources = aparencia.aplicar(regra, sources, lines, frame, terrain, half, scene)
     built = build_buildings(sources, frame, terrain, half)

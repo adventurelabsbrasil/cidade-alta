@@ -1,5 +1,6 @@
 data/osm/raw/
 data/dem/raw/
+data/chm/raw/
 data/build/
 game/.godot/
 # Tile de teste de carga do anel 1 (11 MB): gerar com pipeline/tiles/anel1.toml
