@@ -14,6 +14,8 @@ godot --path game
 
 `W`/`S` acelera e freia, `A`/`D` vira, `Espaço` é o freio de mão, `C` troca a câmera e `R` volta pro início. Gamepad também funciona.
 
+Passe perto de um lugar da cidade (praça, igreja, escola, bairro…) e aparece um cartão com o nome dele. O progresso fica em `~/Library/Application Support/Godot/app_userdata/Cidade Alta/descobertas.json`; apague o arquivo para começar do zero.
+
 ## Gerar a cidade
 
 O tile `game/world/tiles/fatia.glb` já vem no repo. Para gerar de novo a partir dos dados (precisa de [uv](https://docs.astral.sh/uv/) e `brew install osmium-tool`):
@@ -23,6 +25,14 @@ mkdir -p data/osm/raw data/dem/raw
 curl -L -o data/osm/raw/sul-latest.osm.pbf https://download.geofabrik.de/south-america/brazil/sul-latest.osm.pbf
 curl -L -o data/dem/raw/cop30_S30_W051.tif https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_S30_00_W051_00_DEM/Copernicus_DSM_COG_10_S30_00_W051_00_DEM.tif
 uv run pipeline/build_tile.py pipeline/tiles/fatia.toml
+```
+
+Os pontos de descoberta ([decisão 011](docs/decisoes/011-pontos-de-descoberta.md)) também já vêm no repo. Para gerar de novo:
+
+```bash
+uv run pipeline/medir_aneis.py
+python3 pipeline/medir_pontos.py data/build/aneis.geojsonseq data/build/pontos_anel1.json
+uv run pipeline/pontos_tile.py pipeline/tiles/fatia.toml
 ```
 
 ## O que já está decidido

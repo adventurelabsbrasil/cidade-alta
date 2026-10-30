@@ -1,0 +1,64 @@
+{
+ "anel": {
+  "anel": 1,
+  "pontos": 36,
+  "peso_total": 41,
+  "limiar": 25
+ },
+ "pontos": [
+  {
+   "id": "w583973986",
+   "nome": "Praça Arquipélago dos Açores",
+   "categoria": "parque/praça",
+   "peso": 1,
+   "landmark": false,
+   "x": -326.5,
+   "z": -32.4
+  },
+  {
+   "id": "n5240320972",
+   "nome": "Cidade Alta",
+   "categoria": "bairro",
+   "peso": 1,
+   "landmark": false,
+   "x": -306.0,
+   "z": -44.1
+  },
+  {
+   "id": "n13512652370",
+   "nome": "Uniasselvi",
+   "categoria": "escola/universidade",
+   "peso": 1,
+   "landmark": false,
+   "x": -378.8,
+   "z": -39.1
+  },
+  {
+   "id": "n13512656357",
+   "nome": "Colégio Santa Teresinha",
+   "categoria": "escola/universidade",
+   "peso": 1,
+   "landmark": false,
+   "x": -351.9,
+   "z": -40.7
+  },
+  {
+   "id": "landmark:igreja-matriz",
+   "nome": "Igreja Matriz",
+   "categoria": "igreja",
+   "peso": 2,
+   "landmark": true,
+   "x": -305.1,
+   "z": -25.5
+  },
+  {
+   "id": "landmark:fonte-imperial",
+   "nome": "Fonte Imperial",
+   "categoria": "mirante/atração",
+   "peso": 2,
+   "landmark": true,
+   "x": -98.3,
+   "z": -211.5
+  }
+ ]
+}
