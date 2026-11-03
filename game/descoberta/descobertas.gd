@@ -59,6 +59,15 @@ func contador() -> String:
 	return txt + ("  (em breve)" if peso() >= limiar() else "")
 
 
+func apagar() -> void:
+	# "Apagar descobertas" do menu: zera a memória e o arquivo.
+	ids.clear()
+	_fila.clear()
+	_anel_avisado = false
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+
+
 func _physics_process(_delta: float) -> void:
 	if alvo == null:
 		return
