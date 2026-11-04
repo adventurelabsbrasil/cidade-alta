@@ -2,9 +2,9 @@
 
 Jogo de exploração open source: escolha um carro e dirija livremente por **Santo Antônio da Patrulha/RS**, recriada a partir de dados reais de mapa, em estilo low-poly. Sem missões, sem sair do carro: só a cidade, o volante e o que está depois da próxima esquina.
 
-> 🚧 Protótipo. Já dá pra dirigir num quarteirão real da Av. Borges de Medeiros (a [fatia vertical](docs/decisoes/007-fatia-vertical.md)). Acompanhe o [mapa de decisões](https://github.com/adventurelabsbrasil/cidade-alta/issues/1).
+> 🚧 Protótipo. Já dá pra dirigir pelo anel 1 inteiro (3 km ao redor do centro), além da [fatia vertical](docs/decisoes/007-fatia-vertical.md) na Av. Borges de Medeiros. Acompanhe o [mapa de decisões](https://github.com/adventurelabsbrasil/cidade-alta/issues/1).
 
-## Jogar a fatia vertical
+## Jogar
 
 Precisa de um Mac com Apple Silicon e do [Godot 4.6+](https://godotengine.org/download/macos/) (`brew install --cask godot`).
 
@@ -12,9 +12,13 @@ Precisa de um Mac com Apple Silicon e do [Godot 4.6+](https://godotengine.org/do
 godot --path game
 ```
 
-`W`/`S` acelera e freia, `A`/`D` vira, `Espaço` é o freio de mão, `C` troca a câmera e `R` volta pro início. Gamepad também funciona.
+O jogo abre num menu: continuar de onde parou, começar do início, trocar de mapa (cidade toda, quarteirão da Borges, Rua 15 de Novembro), apagar as descobertas ou sair. `Esc`/`P` (ou `Start` no gamepad) pausa e abre o menu de novo. Para abrir direto num tile: `godot --path game -- --tile=fatia`.
 
-Passe perto de um lugar da cidade (praça, igreja, escola, bairro…) e aparece um cartão com o nome dele. O progresso fica em `~/Library/Application Support/Godot/app_userdata/Cidade Alta/descobertas.json`; apague o arquivo para começar do zero.
+`W`/`S` acelera e freia, `A`/`D` vira, `Espaço` é o freio de mão, `C` troca a câmera, `R` volta pro início e `M` troca o zoom do radar. Gamepad também funciona.
+
+O radar no canto mostra a cidade de cima, o norte e as descobertas que faltam, com o nome e a distância da mais próxima. Passe perto de um lugar da cidade (praça, igreja, escola, bairro…) e aparece um cartão com o nome dele.
+
+O progresso fica em `~/Library/Application Support/Godot/app_userdata/Cidade Alta/`: `descobertas.json` (o que já foi descoberto) e `jogo.json` (onde o carro parou em cada mapa, salvo a cada 10 s e ao sair). "Apagar descobertas", no menu, zera os dois.
 
 ## Gerar a cidade
 
