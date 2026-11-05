@@ -17,6 +17,7 @@ const SAVE_JOGO := "user://jogo.json"
 const AUTOSAVE_S := 10.0
 const MENU := preload("res://menu/menu.gd")
 const MINIMAPA := preload("res://minimapa/minimapa.gd")
+const LUGARES := preload("res://lugares/lugares.gd")
 
 static var tile_escolhido := ""  # sobrevive ao reload_current_scene da troca de mapa
 
@@ -65,6 +66,10 @@ func _ready() -> void:
 	spawn = Transform3D(Basis(Vector3.UP, -float(s["heading_from_north"])), Vector3(s["x"], s["y"], s["z"]))
 	_add_bounds(float(meta["size_m"]) / 2.0)
 	_apply_palette(world)
+	var lugares := LUGARES.new()
+	lugares.name = "Lugares"
+	add_child(lugares)
+	lugares.setup(world, tile, meta)
 	descobertas.setup(tile, car, save)
 	reset_car()
 	if _mode == "bench":
