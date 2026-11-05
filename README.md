@@ -39,6 +39,12 @@ python3 pipeline/medir_pontos.py data/build/aneis.geojsonseq data/build/pontos_a
 uv run pipeline/pontos_tile.py pipeline/tiles/fatia.toml
 ```
 
+Lugares feitos à mão (o posto e a Farmácia Seu Jorge na esquina da Idelfonso S. Braga com a João Pedroso da Luz) ficam em `pipeline/lugares/<tile>.toml`. O jogo demole os prédios do lote e monta o lugar ao carregar o tile, sem mexer no `.glb`:
+
+```bash
+uv run pipeline/lugares_tile.py pipeline/tiles/anel1.toml
+```
+
 ## O que já está decidido
 
 | | |

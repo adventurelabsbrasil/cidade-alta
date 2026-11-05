@@ -1,0 +1,26 @@
+# Lugares feitos à mão no anel 1: override versionado (CONTRIBUTING), não edição
+# da malha. O dado aberto não tem esses comércios; quem decide o que existe na
+# esquina é o Founder. `pipeline/lugares_tile.py` transforma isto em peças e na
+# lista de prédios do Overture a demolir, e o jogo monta tudo ao carregar o tile.
+#
+# Cada lugar fica numa esquina: `frente` é a rua onde ele dá a frente, `esquina` a
+# rua que cruza, `lado` o lado da `frente` onde fica o lote. O desenho de cada
+# tipo (onde vai a cobertura, as bombas, as vagas…) mora no gerador.
+
+# Pedido do Founder (04/11/2026): "um posto de gasolina de bandeira amarela na
+# esquina da esquerda, e uma farmácia chamada Seu Jorge no prédio da direita, com
+# um estacionamento", olhando pra o sul pela Idelfonso, vindo da Pedroso da Luz.
+
+# Bandeira genérica, sem marca real (CONTRIBUTING): só a cor amarela.
+[[lugar]]
+tipo = "posto"
+frente = "Rua Idelfonso S. Braga"
+esquina = "Rua João Pedroso da Luz"
+lado = "leste"
+
+[[lugar]]
+tipo = "farmacia"
+nome = "Farmácia Seu Jorge"
+frente = "Rua Idelfonso S. Braga"
+esquina = "Rua João Pedroso da Luz"
+lado = "oeste"
