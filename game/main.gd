@@ -5,10 +5,21 @@
 ##   --bench      gira a câmera em volta do carro e imprime o FPS
 ##   --autotest-descoberta  leva o carro a cada ponto do tile e confere cartão e save
 ##   --save=<caminho>       arquivo de descobertas (padrão user://descobertas.json)
+##   --tile=<nome>          tile a carregar (sem isso: o último jogado, ou o anel 1)
+## Jogando de verdade (sem modo de teste) abre o menu de início; a posição do carro
+## em cada tile fica em user://jogo.json (salva a cada 10 s, no menu e ao sair).
 extends Node3D
 
 const DEFAULT_TILE := "fatia"
+const TILE_INICIAL := "anel1"
 const BENCH_SECONDS := 20.0
+const SAVE_JOGO := "user://jogo.json"
+const AUTOSAVE_S := 10.0
+const MENU := preload("res://menu/menu.gd")
+const MINIMAPA := preload("res://minimapa/minimapa.gd")
+const LUGARES := preload("res://lugares/lugares.gd")
+
+static var tile_escolhido := ""  # sobrevive ao reload_current_scene da troca de mapa
 
 @onready var car: Car = $Car
 @onready var camera: Camera3D = $Camera
@@ -16,23 +27,36 @@ const BENCH_SECONDS := 20.0
 @onready var descobertas: Descobertas = $Descobertas
 
 var spawn := Transform3D.IDENTITY
+var tile := DEFAULT_TILE
 var meta := {}
 var _t := 0.0
 var _frames: Array[float] = []
 var _mode := ""
 var _log: Array[String] = []
+var _jogando := false
+var _autosave_t := 0.0
 
 
 func _ready() -> void:
 	_setup_input()
-	var tile := DEFAULT_TILE
+	var args := OS.get_cmdline_user_args()
+	if "--autotest-descoberta" in args:
+		_mode = "descoberta"
+	elif "--autotest" in args:
+		_mode = "autotest"
+	elif "--bench" in args:
+		_mode = "bench"
+	if _mode == "":
+		tile = tile_escolhido if tile_escolhido != "" else _ler_save().get("ultimo_tile", TILE_INICIAL)
+		if not ResourceLoader.exists("res://world/tiles/%s.glb" % tile):
+			tile = DEFAULT_TILE
 	var save := Descobertas.SAVE_PADRAO
-	for arg in OS.get_cmdline_user_args():
+	for arg in args:
 		if arg.begins_with("--tile="):
 			tile = arg.trim_prefix("--tile=")
 		elif arg.begins_with("--save="):
 			save = arg.trim_prefix("--save=")
-	if "--autotest-descoberta" in OS.get_cmdline_user_args():
+	if _mode == "descoberta":
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(save))  # começa do zero
 	var world: Node3D = load("res://world/tiles/%s.glb" % tile).instantiate()
 	world.name = "Tile"
@@ -42,23 +66,89 @@ func _ready() -> void:
 	spawn = Transform3D(Basis(Vector3.UP, -float(s["heading_from_north"])), Vector3(s["x"], s["y"], s["z"]))
 	_add_bounds(float(meta["size_m"]) / 2.0)
 	_apply_palette(world)
+	var lugares := LUGARES.new()
+	lugares.name = "Lugares"
+	add_child(lugares)
+	lugares.setup(world, tile, meta)
 	descobertas.setup(tile, car, save)
 	reset_car()
-	var args := OS.get_cmdline_user_args()
-	if "--autotest-descoberta" in args:
-		_mode = "descoberta"
-	elif "--autotest" in args:
-		_mode = "autotest"
-	elif "--bench" in args:
-		_mode = "bench"
+	if _mode == "bench":
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	elif _mode == "":
+		var radar := MINIMAPA.new()
+		add_child(radar)
+		radar.setup(car, descobertas, $Environment.environment)
+		var menu := MENU.new()
+		add_child(menu)
+		menu.setup(self)
+		menu.abrir_inicio()
 
 
-func reset_car() -> void:
-	car.global_transform = spawn
+func reset_car(destino = null) -> void:
+	var t: Transform3D = spawn if destino == null else destino
+	car.global_transform = t
 	car.linear_velocity = Vector3.ZERO
 	car.angular_velocity = Vector3.ZERO
-	camera.global_position = spawn.origin + spawn.basis.z * 6.5 + Vector3.UP * 2.4
+	camera.global_position = t.origin + t.basis.z * 6.5 + Vector3.UP * 2.4
+
+
+# --- Save da posição (menu) ---
+
+func tem_save() -> bool:
+	return _ler_save().get("posicoes", {}).has(tile)
+
+
+func continuar() -> void:
+	var p: Dictionary = _ler_save()["posicoes"][tile]
+	reset_car(Transform3D(Basis(Vector3.UP, float(p["rot_y"])), Vector3(p["x"], float(p["y"]) + 0.5, p["z"])))
+	_jogando = true
+
+
+func comecar() -> void:
+	reset_car()
+	_jogando = true
+	salvar()
+
+
+func salvar() -> void:
+	if not _jogando:
+		return
+	_autosave_t = 0.0
+	var d := _ler_save()
+	var posicoes: Dictionary = d.get("posicoes", {})
+	var o := car.global_position
+	posicoes[tile] = {"x": o.x, "y": o.y, "z": o.z, "rot_y": car.global_rotation.y}
+	d["versao"] = 1
+	d["ultimo_tile"] = tile
+	d["posicoes"] = posicoes
+	FileAccess.open(SAVE_JOGO, FileAccess.WRITE).store_string(JSON.stringify(d, " "))
+
+
+func trocar_mapa(novo: String) -> void:
+	salvar()
+	tile_escolhido = novo
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func apagar_progresso() -> void:
+	descobertas.apagar()
+	if FileAccess.file_exists(SAVE_JOGO):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_JOGO))
+	_jogando = false
+	reset_car()
+
+
+func _ler_save() -> Dictionary:
+	if not FileAccess.file_exists(SAVE_JOGO):
+		return {}
+	var d = JSON.parse_string(FileAccess.get_file_as_string(SAVE_JOGO))
+	return d if d is Dictionary else {}
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		salvar()
 
 
 func _apply_palette(root: Node) -> void:
@@ -97,6 +187,10 @@ func _process(delta: float) -> void:
 	_t += delta
 	if car.global_position.y < -200.0:
 		reset_car()
+	if _jogando:
+		_autosave_t += delta
+		if _autosave_t >= AUTOSAVE_S:
+			salvar()
 	match _mode:
 		"autotest":
 			_autotest()
@@ -104,7 +198,7 @@ func _process(delta: float) -> void:
 			_bench(delta)
 		"descoberta":
 			_autotest_descoberta()
-	hud.text = "%d km/h   %d FPS   %s   %s\n[W/S] acelerar/frear  [A/D] direção  [Espaço] freio de mão  [C] câmera  [R] reiniciar" % [
+	hud.text = "%d km/h   %d FPS   %s   %s\n[W/S] acelerar/frear  [A/D] direção  [Espaço] freio de mão  [C] câmera  [R] reiniciar  [M] zoom do mapa  [Esc] menu" % [
 		absi(roundi(car.speed() * 3.6)), Engine.get_frames_per_second(),
 		RenderingServer.get_current_rendering_driver_name(), descobertas.contador()]
 
@@ -194,12 +288,14 @@ func _setup_input() -> void:
 		"acelerar": [KEY_W, KEY_UP], "frear": [KEY_S, KEY_DOWN],
 		"esquerda": [KEY_A, KEY_LEFT], "direita": [KEY_D, KEY_RIGHT],
 		"freio_de_mao": [KEY_SPACE], "camera": [KEY_C], "reiniciar": [KEY_R],
+		"pausa": [KEY_ESCAPE, KEY_P], "mapa_zoom": [KEY_M],
 	}
 	var axes := {
 		"acelerar": [JOY_AXIS_TRIGGER_RIGHT, 1.0], "frear": [JOY_AXIS_TRIGGER_LEFT, 1.0],
 		"esquerda": [JOY_AXIS_LEFT_X, -1.0], "direita": [JOY_AXIS_LEFT_X, 1.0],
 	}
-	var buttons := {"freio_de_mao": JOY_BUTTON_B, "camera": JOY_BUTTON_Y, "reiniciar": JOY_BUTTON_BACK}
+	var buttons := {"freio_de_mao": JOY_BUTTON_B, "camera": JOY_BUTTON_Y, "reiniciar": JOY_BUTTON_BACK,
+		"pausa": JOY_BUTTON_START, "mapa_zoom": JOY_BUTTON_X}
 	for action in keys:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, 0.15)
